@@ -1,8 +1,7 @@
 #################################################################################
 #
-#            (Predictive) Realized Ecological Niche Model (ENM)
-#               Of exotic tree Species in a given country.
-#                        UBALDI MASTER THESIS
+#       Climate matching approach of exotic tree species in France
+#                       UBALDI MASTER THESIS
 #
 #################################################################################
 # January - June 2023
