@@ -102,7 +102,7 @@ l'ensemble des différentes étapes décrites ici (étapes 2 à 10, l'étape 1
 réaliser l'approche pour chacune des espèces que l'on souhaite étudier,
 automatiquement une par une.
 
-![](images/3.png){width="700"}
+![](images/3.png)
 
 Dans cette description, nous prendrons comme exemple l'espèce *Robinia
 pseudoacacia*, avec huit variables bioclimatiques et aucunes variables
@@ -111,7 +111,7 @@ pseudoacacia*, avec huit variables bioclimatiques et aucunes variables
 ```{r 1}
 ## List of species or species to studied
 species <- "Robinia pseudoacacia"
-## Each Bioclimatic var are select?
+## Each Bioclimatic variables are select?
 varbio <- c(1,4,5,6,12,13,14,15)
 ## Each Soil GRIDS variables? 
 soil <- NULL
@@ -126,12 +126,13 @@ Ici, les données nécessaires a définir pour l'étude.
 ```{r 1.2}
 ## Country or Countries where you want to project the niches? 
 count <- "France"
-## ex: c(“Norway”, “Sweden”, “Finland”, “Danemark”)
+## e.g. multiples countries: count <- c(“Norway”, “Sweden”, “Finland”, “Danemark”)
 if (length(count)>1) {
 ## You have define more than one country, 
 ## you need to give a name to your countries list.
   count_name <- "Scandinavia"
 } else {
+  ## If only one country is defined, name is the same.
   count_name <- count }
 ## Each periods? (folder names)
 periods <- c("1951-1980", "1981-2010","2011-2040", "2041-2070", "2071-2100")
@@ -197,9 +198,10 @@ i <- species
 
 #### 2.1.1. Télécharger le Shapefile
 
-La première étape est de télécharger le *Shapefile* du pays
-d'introduction des espèces de l'étude, à partir de
-[gadm.org](gadm.org/index), et le convertir en *SpatVector* (polygone).
+Après avoir définies les données à étudier, la duxième étape est de
+télécharger le *Shapefile* du pays d'introduction des espèces de
+l'étude, à partir de [gadm.org](gadm.org/index), et le convertir en
+*SpatVector* (polygone).
 
 Tout d'abord, le code ISO du pays est trouvé. Ensuite, une boucle `If`
 est créée selon qu'il y a un ou plusieurs pays à télécharger.
@@ -257,11 +259,16 @@ La troisième étape vise à récupérer les variables environnementales, au
 format raster (.tif), de CHELSA et SoilGrids à l'échelle mondiale en
 utilisant la fonction `Chelsa.CMIP_6.download()` du package
 `ClimDatDownloadR` pour CHELSA, et la fonction `soil_world()` de
-`geodata` pour SoilGrids. Ils sont ensuite découpés en polygone
-(`SpatVector` du ou des pays à étudier) à l'aide de la fonction `crop()`
-du package `raster`. Le raster découpé est ensuite sauvegardé en
-utilisant la fonction `writeRaster()` du package `terra`. Les rasters
-CHELSA sont découpés pour chaque période et chaque scénario étudié.
+`geodata` pour SoilGrids.
+
+Ces rasters, récupérés à l'échelle mondiale, sont ensuite découpés dans
+le polygone du (ou des) pays d'introduction, à l'aide de la fonction
+`crop()` du package `raster`, afin de ne garder que les conditions
+environnementales dans le(s) pays cible.
+
+Les rasters découpés sont ensuite sauvegardés en utilisant la fonction
+`writeRaster()` du package `terra`. Les rasters CHELSA sont découpés
+pour chaque période et chaque scénario étudié.
 
 **Afin de ne pas s'emmêler dans les boucles, j'ai essayé de préciser à
 chaque étape les différentes boucles utilisées et leur objectif.**
@@ -300,10 +307,10 @@ library(ClimDatDownloadR)
 #### 3.1.2. Définir l'étendue des rasters
 
 Ensuite, les rasters bioclimatiques sont utilisés pour définir l'étendue
-(**extent**) qui doit être identique à celui des grilles de sol
-(l'étendue spatial d'un raster représente les coordonnées latitude et
-longitude ("X, Y") des coins du raster dans l'espace géographique) à
-l'aide de la fonction `ext()` du package `terra`.
+(**extent**) qui doit être identique à celui des rasters sol (l'étendue
+spatial d'un raster représente les coordonnées latitude et longitude
+("X, Y") des coins du raster dans l'espace géographique) à l'aide de la
+fonction `ext()` du package `terra`.
 
 ```{r 3.1.2}
 ## 3.1.2. Define the extent of Bioclimatic Rasters to match with Soil Rasters
@@ -686,17 +693,22 @@ if (is.null(soil)) { print("No soil variable defined. Please provide at least on
 ## 4. Aire d'indigénat des espèces étudiées
 
 Étape 4, téléchargement de l'aire d'indigène (`Shapefile` converti en
-`SpatVector`) de l'espèce définie à étudier (uniquement sur la période
-de référence "1951-1980" car l'aire d'indigénat est calibrée sur la
+`SpatVector`) de l'espèce à étudier (uniquement sur la période de
+référence "1951-1980" car l'aire d'indigénat est calibrée sur la
 distribution de l'espèce avant 1980), sauvegardée en tant que `range`.
+
+Dans notre exemple, le Shapefile de l'aire d'indigénat du Robinier a été
+téléchargé sur [USTreeAtlas](https://github.com/wpetry/USTreeAtlas),
+mais une base de donnée similaire est également disponible pour les
+essences natives européennes [EUFORGEN](https://www.euforgen.org/).
 
 ```{r 4}
 period <- "1951-1980"
 ```
 
-La boucle est définie telle que :
-
 ### 4.1. Téléchargement du Shapefile et le convertir en SpatVector
+
+La boucle est définie telle que :
 
 If ( Species folder with Native Range (NR) Shapefile exists or not? )
 
@@ -753,10 +765,11 @@ If ( Species folder with Native Range (NR) Shapefile exists or not? )
     
 ```
 
-SpatVector de l'aire d'indigénat de l'espèce :
+SpatVector de l'aire d'indigénat ici du Robinier :
 
 ```{r}
 range
+plot(range)
 ```
 
 ### 4.2. Découpage des rasters dans l'aire d'indigénat des espèces étudiées
@@ -1207,20 +1220,27 @@ plot(rast_c[[1]])
 
 ## 6. ACP (Espace environnemental) et Sélection des points
 
-Étape 6: Création d'une ACP, qui permet d'obtenir l'espace
+**Étape 6.1:** Création d'une ACP, qui permet d'obtenir l'espace
 environnemental représentant les conditions environnementales (issues
 des variables environnementales étudiées) au sein du pays d'introduction
-et de l'aire d'indigénat de l'espèce étudiée (Figure 1a).
+(bleu) et de l'aire d'indigénat de l'espèce étudiée (jaune; Figure 1a).
 
-Une fois l'espace environnemental dessiné, les points du pays
-d'introduction qui se trouvent proches de ceux représentés de l'aire
-d'indigénat de l'espèce sont sélectionnés (ellipse noir, Figure 1b) et
-sauvegardé dans `dist_list`. Cela signifie que les conditions
-environnementales de ces points (pays) sont proches de celles dans
-l'aire d'indigène de l'espèce, la distance maximum entre les points
-étant définie par une distance maximale (md). A la fin, un data frame
-`map_list` avec seulement ces points sélectionnés permettra de projeter
-ces points sur les cartes du pays.
+**Étape 6.2:** Une fois l'ACP réalisée, les conditions environnementales
+au sein de l'aire d'indigénat de l'espèce (en jaune) et dans le pays
+d'introduction (en bleu) y sont projetées, donnant deux nuages de
+points. Les points concordants, c'est-à-dire les points correspondant
+aux conditions environnementales dans le pays d'introduction (en bleu),
+ici la France, qui sont à proximité (à une distance maximum (md) de 0.2
+unité des axes de l'ACP) des points correspond aux conditions dans
+l'aire d'indigénat (la niche réalisée de l'espèce), sont sélectionnés
+(ellipse noir, figure 1b).
+
+Cette sélection des points de l'aire d'introduction à proximité des
+points de l'aire d'indigénat a été faite à l'aide de la fonction
+`distance_semi_join` du package `fuzzyjoin`.
+
+À la fin, un data frame `map_list` avec seulement ces points
+sélectionnés permettra de projeter ces points sur les cartes du pays.
 
 ![](images/Rplot1.png)
 
@@ -1424,7 +1444,9 @@ Figure du pourcentage de variances expliquées d'une ACP
 plot_vp
 ```
 
-Exemple d'une ACP réalisée :
+Exemple d'une ACP réalisée sous huit variables bioclimatiques entre
+l'aire d'indigénat du Robinier (jaune) et la France métropolitaine
+(bleu) :
 
 ```{r}
 pca_list[5]
@@ -1432,24 +1454,27 @@ pca_list[5]
 
 ### 6.2. Sélectionner les points de concordance environnementale
 
-Une fois l'ACP réalisée, les conditions environnementales au sein de
-l'aire d'indigénat de l'espèce et dans le pays d'introduction y sont
-projetées, donnant deux nuages de points. Les points concordants,
-c'est-à-dire les points du nuage de point correspondant aux conditions
-environnementales dans le pays d'introduction, ici la France, qui sont
-proches (à une distance max de 0.2 unité de l'axe de l'ACP) de ceux du
-nuage de point correspond aux conditions dans l'aire d'indigénat, sont
-sélectionnés (ellipse noir sur la figure 1b), puis enregistrés dans un
-data frame à part.
+La boucle est telle que:
 
-La boucle est telle que: If variables bioclimatiques null? - T -\> Only
-on soil variables - F -\> If period avec scenario? - T -\> Period avec
-scénario: If aucun point proche sélectionné? - T -\> Créer un data frame
-vide / plot sans point similaire - F -\> Créer data frame avec points
-proche / créer plot avec points similaires - F -\> Period sans scénario:
-If aucun point proche sélectionné? - T -\> Créer un data frame vide /
-plot sans point similaire - F -\> Créer data frame avec points proche
-/créer plot avec points similaires
+If variables bioclimatiques null?
+
+-   T -\> Only on soil variables
+
+-   F -\> If period avec scenario?
+
+    -   T -\> Period avec scénario: If aucun point proche sélectionné?
+
+        -   T -\> Créer un data frame vide / plot sans point similaire
+
+        -   F -\> Créer data frame avec points proche / créer plot avec
+            points similaires
+
+    -   F -\> Period sans scénario: If aucun point proche sélectionné?
+
+        -   T -\> Créer un data frame vide / plot sans point similaire
+
+        -   F -\> Créer data frame avec points proche /créer plot avec
+            points similaires
 
 ```{r 6.2}
 ### 6.2. Select close points ####
@@ -1742,7 +1767,8 @@ for (j in periods) {
 ```
 
 Exemple d'une ACP avec les points de concordance environnementale
-sélectionnés :
+sélectionnés (ellipse noir) entre l'aire d'indigénat du Robinier (jaune)
+et la France (bleu) :
 
 ```{r}
 dist_list[5]
@@ -1847,9 +1873,9 @@ AB <- map_data("world") %>% filter(region %in% count)
 
 ```
 
-Exemple des Cartes avec la distribution climatique potentielle de
-l'espèce dans le pays d'introduction sur la période "2071-2100" sous le
-scénario SSP5-8.5 :
+Exemple d'une carte avec la distribution climatique potentielle du
+Robinier dans le pays d'introduction (France) sur la période "2071-2100"
+sous le scénario SSP5-8.5 :
 
 ```{r}
 if (is.null(varbio)) {bplot_list[1]} else {bplot_list[11]}
@@ -2027,10 +2053,15 @@ for (k in ssp) {
 }
 ```
 
-Exemple de cartes avec le total des cartes pour scénarios SSP1-2.6 :
+Exemple de la carte avec le total des cartes pour scénarios SSP5-8.5
+pour le cas du Robinier (point vert clair la localité géographique sera
+bioclimatiquement favorable sous qu'une seule période sous ce scénario;
+point vert foncée : la localité géographique sera bioclimatiquement
+favorable sous les trois périodes (2010-2040, 2040-2070, 2070-2100) sous
+ce scénario).
 
 ```{r}
-plot_dist_sc[1] 
+plot_dist_sc[3] 
 ```
 
 ### 9.2. Carte Total Periods
@@ -2078,10 +2109,14 @@ for (j in periods) {
 }  
 ```
 
-Exemple de cartes avec le total des cartes pour périodes "2011-2040" :
+Exemple de la carte avec le total des cartes pour la période "2071-2100"
+pour le cas du Robinier (point vert clair : la localité géographique
+sera bioclimatiquement favorable sous qu'un seul scénario; point vert
+foncée : la localité géographique sera bioclimatiquement favorable sous
+les trois scénarios, sur cette période).
 
 ```{r}
-plot_dist_pe[1] 
+plot_dist_pe[3] 
 ```
 
 ### 9.3. Carte total
@@ -2090,7 +2125,7 @@ Puis finalement la carte avec le total. Une valeur de 9 sur la carte
 indique que la localité géographique sera bioclimatiquement favorable
 sur l'ensemble de la période de 2010 à 2100, sur l'ensemble des
 scénarios considérés. Une valeur de 1 indique, à l'inverse, que localité
-géographique sera bioclimatiquement favorable sur seulement uen seule
+géographique sera bioclimatiquement favorable sur seulement une seule
 période pour un seul scénario considéré.
 
 ```{r 9.3}
@@ -2145,8 +2180,8 @@ cartes (ou ACP) produitent sur une seule page, à l'aide de la fonction
 
 ### 10.1. Cartographie avec les variables édaphiques seulement
 
-La première sous-étape est le regroupement des cartes et ACP produitent
-lorsque seulement les variables édaphiques sont étudiées :
+La première sous-étape est le regroupement des cartes et ACP réalisées
+lorsque seules les variables édaphiques sont étudiées :
 
 ```{r 10.1}
 ### 10.1. Only soil variables ####
@@ -2202,7 +2237,9 @@ sub = paste0("(Avec les variables bioclimatiques ", paste(sort(varbio), collapse
 #### 10.2.2. Cartographie de l'aire d'indigénat de l'espèce
 
 L'objectif ensuite est de cartographier l'aire d'indigénat de l'espèce
-afin d'être informé de sa localisation géographique dans le monde.
+afin d'être informé de sa localisation géographique dans le monde. Ici
+avec comme exemple l'aire géographique d'indigénat du Robinier, une
+essence originaire des montagnes des Appalaches aux Etats-Unis.
 
 ```{r 10.2.2}
     ### 10.2.2. Native Range map ####
@@ -2297,7 +2334,7 @@ p5 <- cowplot::plot_grid(plot_dist_pe[[1]], plot_dist_pe[[2]], plot_dist_pe[[3]]
 
 patch1 <- (wrap_elements(p1) / wrap_elements(p2) / wrap_elements(p3) / wrap_elements(p4) / wrap_elements(p5)) +
   plot_annotation(
-    title = paste("Niche Bioclimatique Potentielle Projetée de", i, "en", count_name, sep=" "),
+    title = paste("Distribution bioclimatique potentielle de", i, "en", count_name, sep=" "),
     subtitle = sub, 
     theme = theme(plot.title = element_text(size = 30, face="bold", hjust = 0.5),
                   plot.subtitle = element_text(size = 20, hjust = 0.5)))
@@ -2357,3 +2394,16 @@ patch3 <- (wrap_elements(p10)/wrap_elements(p11)/wrap_elements(p12)/wrap_element
                   plot.subtitle = element_text(size = 20, hjust = 0.5)))
 #patch3
 ```
+
+Avec ici, comme exemple, la page regroupant l'ensemble des cartes de
+distribution climatique potentielle du Robinier en France métropolitaine
+entre 1950 et 2100, sous les trois scénarios :
+
+![](images/Carte1.jpg)
+Accompagnée de la page avec les ACP réalisées sous huit variables bioclimatiques entre l'aire d'indigénat du Robinier (jaune) et la France métropolitaine (bleu) :
+
+![](images/ACP.jpg) 
+
+Ainsi que la page regroupant la carte de distribution, l'ACP et l'espace environnemental du Robinier obtenus en étudiant les variables édaphiques :
+
+![](images/Sol.jpg) 
