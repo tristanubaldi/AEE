@@ -9,10 +9,7 @@ L'objectif de cette approche est de projeter dans une ACP les conditions environ
 
 ## Dépôt GitHub
 
-1. Script R écrit pour réaliser cette approche descriptive (Script_Approche.R)
-2. Description détaillée des différentes étapes du script R (sur le lien https://tristanubaldi.github.io/AEE/Description_scriptR.html)
-3. Cartes de distribution potentielle bioclimatique 
-4. Cartes de distribution potentielle édaphique 
-5. ACP faites avec les huit variables bioclimatiques
+- Script R écrit pour réaliser cette approche descriptive (Script_Approche.R)
+- Description détaillée des différentes étapes du script R (sur le lien https://tristanubaldi.github.io/AEE/Description_scriptR.html)
 
 **Auteur:** Tristan Ubaldi
